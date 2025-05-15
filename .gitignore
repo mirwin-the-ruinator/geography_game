@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+.env
+.venv/
+venv/
+env/
+
+# FastAPI auto-generated files
+*.db
+
+# Node
+node_modules/
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor/OS files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -4,7 +4,7 @@ from random import sample
 from typing import List
 
 from app.db.database import SessionLocal
-from app.db import crud
+from app.db import crud, models
 from app.constants import COUNTRIES, ROUND_COUNT, COUNTRY_SVG_MAP
 from app.schemas.game_schemas import StartGameRequest, GameResponse, GameSummary, SendGameRequest
 from app.schemas.game_detail_schemas import GameDetailResponse, GameRoundSchema, GuessSchema
@@ -46,11 +46,17 @@ def start_game(payload: StartGameRequest, db: Session = Depends(get_db)):
 @router.get("/game/{game_id}", response_model=GameDetailResponse)
 def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
     game = (
-        db.query(crud.models.Game)
-        .options(joinedload(crud.models.Game.rounds).joinedload(crud.models.GameRound.guesses))
-        .filter(crud.models.Game.id == game_id)
+        db.query(models.Game)
+        .options(
+            joinedload(models.Game.rounds.and_(True)).joinedload(models.GameRound.guesses)
+        )
+        .filter(models.Game.id == game_id)
         .first()
     )
+
+    # sort rounds explicitly in memory
+    game.rounds.sort(key=lambda r: r.round_index)
+
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
 
@@ -58,8 +64,15 @@ def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
 
     rounds = []
     for r in sorted(game.rounds, key=lambda r: r.round_index):
-        guesses = [GuessSchema(player=g.player, value=g.value, correct=g.correct) for g in r.guesses]
-        rounds.append(GameRoundSchema(country=r.country if show_country else None, guesses=guesses))
+        guesses = [
+            GuessSchema(player=g.player, value=g.value, correct=g.correct)
+            for g in sorted(r.guesses, key=lambda g: g.id)
+        ]
+        rounds.append(GameRoundSchema(
+            round_index=r.round_index,
+            country=r.country if show_country else None,
+            guesses=guesses
+        ))
 
     current_country = (
         game.rounds[game.current_round].country
@@ -105,7 +118,8 @@ def submit_guess(payload: SubmitGuessRequest, db: Session = Depends(get_db)):
     if game.current_round >= len(game.rounds):
         raise HTTPException(status_code=400, detail="No more rounds available")
 
-    current_round = game.rounds[game.current_round]
+    sorted_rounds = sorted(game.rounds, key=lambda r: r.round_index)
+    current_round = sorted_rounds[game.current_round]
 
     if any(g.player == payload.player for g in current_round.guesses):
         raise HTTPException(status_code=400, detail="Player has already guessed this round")

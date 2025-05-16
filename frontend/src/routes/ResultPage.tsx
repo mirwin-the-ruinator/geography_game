@@ -59,32 +59,35 @@ const ResultPage = () => {
         </>
       )}
 
-      {game.rounds.map((round, index) => {
-        const userGuess = round.guesses.find((g) => g.player === username);
-        const oppGuess = round.guesses.find((g) => g.player === opponent);
+      {[...game.rounds]
+        .sort((a, b) => a.round_index - b.round_index)
+        .map((round, index) => {
+          const userGuess = round.guesses.find((g) => g.player === username);
+          const oppGuess = round.guesses.find((g) => g.player === opponent);
+          console.log('R O U N D', round);
 
-        return (
-          <div
-            key={index}
-            style={{ borderBottom: '1px solid #ccc', marginBottom: '1rem' }}
-          >
-            <h3>Round {index + 1}</h3>
-            <p>
-              Your guess: <strong>{userGuess?.value ?? '—'}</strong>{' '}
-              {userGuess?.correct ? '✅ Correct' : `❌ Incorrect`}
-            </p>
-            {opponent && oppGuess && (
+          return (
+            <div
+              key={index}
+              style={{ borderBottom: '1px solid #ccc', marginBottom: '1rem' }}
+            >
+              <h3>Round {index + 1})</h3>
               <p>
-                {opponent}'s guess: <strong>{oppGuess?.value ?? '—'}</strong>{' '}
-                {oppGuess?.correct ? '✅ Correct' : `❌ Incorrect`}
+                Your guess: <strong>{userGuess?.value ?? '—'}</strong>{' '}
+                {userGuess?.correct ? '✅ Correct' : `❌ Incorrect`}
               </p>
-            )}
-            <p>
-              Answer: <strong>{round.country}</strong>
-            </p>
-          </div>
-        );
-      })}
+              {opponent && oppGuess && (
+                <p>
+                  {opponent}'s guess: <strong>{oppGuess?.value ?? '—'}</strong>{' '}
+                  {oppGuess?.correct ? '✅ Correct' : `❌ Incorrect`}
+                </p>
+              )}
+              <p>
+                Answer: <strong>{round.country}</strong>
+              </p>
+            </div>
+          );
+        })}
 
       <button onClick={() => navigate('/')}>Play Again</button>
     </div>

@@ -22,6 +22,7 @@ export interface Guess {
 export interface GameRound {
   country: string | null;
   guesses: Guess[];
+  round_index: number;
 }
 
 export interface GameDetailResponse {

@@ -9,6 +9,7 @@ class GuessSchema(BaseModel):
 class GameRoundSchema(BaseModel):
     country: Optional[str]  # Only shown after completion
     guesses: List[GuessSchema]
+    round_index: int
 
 class GameDetailResponse(BaseModel):
     gameId: str

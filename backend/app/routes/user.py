@@ -14,6 +14,13 @@ def get_db():
     finally:
         db.close()
 
+@router.get("/user/{username}")
+def get_user(username: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter_by(username=username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"username": user.username}
+
 @router.get("/user-summary", response_model=UserSummaryResponse)
 def user_summary(username: str = Query(...), db: Session = Depends(get_db)):
     games = db.query(Game).filter(

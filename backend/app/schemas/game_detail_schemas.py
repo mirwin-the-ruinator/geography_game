@@ -21,3 +21,5 @@ class GameDetailResponse(BaseModel):
     current_round: int
     country_svg: Optional[str]
     rounds: List[GameRoundSchema]
+    cluesAvailable: Optional[int] = None
+    cluesUsedThisRound: Optional[int] = None

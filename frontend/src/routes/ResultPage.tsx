@@ -3,6 +3,7 @@ import { useGetGameQuery } from '../features/api/gameApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../app/store';
 import { useEffect } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 const ResultPage = () => {
   const { gameId } = useParams();
@@ -10,7 +11,11 @@ const ResultPage = () => {
   const username = useSelector(
     (state: RootState) => state.identity.user?.username
   );
-  const { data: game, isLoading, error } = useGetGameQuery(gameId ?? '');
+  const {
+    data: game,
+    isLoading,
+    error,
+  } = useGetGameQuery(gameId && username ? { gameId, username } : skipToken);
 
   useEffect(() => {
     if (game) {

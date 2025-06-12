@@ -1,4 +1,7 @@
-from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, JSON
+from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import joinedload, relationship, Session
 from uuid import uuid4
 from app.db.database import Base
@@ -25,6 +28,8 @@ class Game(Base):
     sent = Column(Boolean, default=False)
     status = Column(String, default="ongoing")
     winner = Column(String, nullable=True)
+    clues_available = Column(MutableDict.as_mutable(JSONB), nullable=True)
+    clues_used = Column(MutableDict.as_mutable(JSONB), nullable=True)
 
     player1_user = relationship("User", foreign_keys=[player1], back_populates="games_as_player1")
     player2_user = relationship("User", foreign_keys=[player2], back_populates="games_as_player2")
@@ -72,6 +77,10 @@ class Guess(Base):
     correct = Column(Boolean)
 
     round = relationship("GameRound", back_populates="guesses")
+
+    __table_args__ = (
+        UniqueConstraint('round_id', 'player', name='uq_round_player'),
+    )
 
 
 # Optional helper to fix previously broken game completions

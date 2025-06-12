@@ -6,8 +6,10 @@ import {
   useGetGameQuery,
   useSubmitGuessMutation,
   useSendGameMutation,
+  useGetHintMutation,
 } from '../features/api/gameApi';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 const GamePage = () => {
   const { gameId } = useParams();
@@ -21,36 +23,59 @@ const GamePage = () => {
     isLoading,
     error,
     refetch,
-  } = useGetGameQuery(gameId ?? '');
+  } = useGetGameQuery(gameId && username ? { gameId, username } : skipToken, {
+    skip: !gameId || !username,
+  });
 
   const [submitGuess, { isLoading: isSubmitting }] = useSubmitGuessMutation();
   const [sendGame] = useSendGameMutation();
   const { data: countries = [], isLoading: loadingCountries } =
     useGetCountriesQuery();
+  const [getHint] = useGetHintMutation();
 
   const [guess, setGuess] = useState('');
-  const [guesses, setGuesses] = useState<string[]>([]);
+  const [, setGuesses] = useState<string[]>([]);
   const [alreadyGuessed, setAlreadyGuessed] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [clues, setClues] = useState<string[]>([]);
+  const [isRequestingClue, setIsRequestingClue] = useState(false);
+
+  useEffect(() => {
+    setAlreadyGuessed(false);
+    setClues([]);
+    setGuess('');
+  }, [game?.current_round]);
 
   if (!gameId || !username) return <p>Missing game or user.</p>;
   if (isLoading) return <p>Loading game...</p>;
   if (error || !game) return <p>Could not load game.</p>;
 
-  const currentRound =
-    game.rounds && game.current_round < game.rounds.length
-      ? game.rounds[game.current_round]
-      : null;
+  const handleGetHint = async () => {
+    if (!username) return;
+    setIsRequestingClue(true);
+    try {
+      const response = await getHint({
+        gameId,
+        roundIndex: game.current_round,
+        player: username,
+      }).unwrap();
 
-  if (!currentRound) return <p>Waiting for the next round to load...</p>;
-
-  const isComplete = game.status === 'complete';
-  const isLastRound = game.current_round === game.maxGuesses - 1;
+      setClues((prev) => [...prev, response.clue]);
+      console.log('Clue received:', response.clue);
+      refetch(); // to update clue count in game state
+    } catch (err) {
+      console.error('Hint failed:', err);
+      alert('Could not fetch a clue.');
+    } finally {
+      setIsRequestingClue(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!guess.trim()) return;
 
     setGuesses((prev) => [...prev, guess]);
+    setClues([]); // Reset clues for the next round
 
     try {
       const result = await submitGuess({
@@ -62,19 +87,11 @@ const GamePage = () => {
       setGuess('');
       setAlreadyGuessed(true);
 
-      // Wait for backend to persist guess and advance round
-      const updatedGame = await refetch().unwrap();
-
       setFeedback(
         result?.correct
           ? '✅ You were right!'
           : `❌ The correct answer was ${result?.correct_answer ?? 'unknown'}`
       );
-      setAlreadyGuessed(false);
-
-      if (updatedGame.status === 'complete') {
-        navigate(`/results/${gameId}`);
-      }
     } catch (err) {
       console.error('Guess failed:', err);
     }
@@ -83,35 +100,27 @@ const GamePage = () => {
   const handleSend = async () => {
     try {
       await sendGame({ gameId: game.gameId, sender: username }).unwrap();
-      const updatedGame = await refetch().unwrap();
-
-      if (updatedGame.status === 'complete') {
-        navigate(`/results/${gameId}`);
-      } else {
-        setTimeout(() => navigate(`/results/${gameId}`), 500);
-      }
     } catch (err) {
       console.error('Send failed:', err);
       alert('Failed to send the game to your opponent.');
     }
   };
 
-  const handleNext = () => {
-    setFeedback('');
-    refetch();
+  const handleFinish = async () => {
+    const updatedGame = await refetch().unwrap();
+    if (updatedGame?.status === 'complete') {
+      navigate(`/results/${gameId}`);
+    }
   };
-
-  if (isComplete) {
-    navigate(`/results/${game.gameId}`);
-    return null;
-  }
 
   return (
     <div>
       <h1>Geography Game</h1>
-      <p>
-        Round {game.current_round + 1} of {game.rounds.length}
-      </p>
+      {game.current_round < game.rounds.length && (
+        <p>
+          Round {game.current_round + 1} of {game.rounds.length}
+        </p>
+      )}
 
       {game.country_svg && (
         <img
@@ -123,7 +132,24 @@ const GamePage = () => {
 
       {feedback && <p>{feedback}</p>}
 
-      {!alreadyGuessed && (
+      {(game.cluesAvailable ?? 0) > 0 && !alreadyGuessed && (
+        <button onClick={handleGetHint} disabled={isRequestingClue}>
+          Get a Hint - ({game.cluesAvailable ?? 0} clues left)
+        </button>
+      )}
+
+      {(game.cluesUsedThisRound ?? 0) > 0 && !alreadyGuessed && (
+        <div>
+          <strong>Clues:</strong>
+          <ul>
+            {clues.map((clue, index) => (
+              <li key={`clueItem${index}`}>{clue}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!alreadyGuessed && game.status !== 'complete' && (
         <div>
           <label htmlFor="guess-select">Your guess:</label>
           <select
@@ -145,27 +171,11 @@ const GamePage = () => {
         </div>
       )}
 
-      {alreadyGuessed && !isLastRound && (
-        <button onClick={handleNext}>Next</button>
+      {game.status === 'complete' && (
+        <button onClick={handleFinish}>View Results</button>
       )}
 
-      {guesses.length === game.maxGuesses && (
-        <button
-          onClick={async () => {
-            const updatedGame = await refetch().unwrap();
-            if (updatedGame.status === 'complete') {
-              navigate(`/results/${gameId}`);
-            } else {
-              setTimeout(() => navigate(`/results/${gameId}`), 500);
-            }
-          }}
-        >
-          View Results
-        </button>
-      )}
-
-      {alreadyGuessed &&
-        isLastRound &&
+      {game.status === 'complete' &&
         game.mode === 'multi' &&
         !game.sent &&
         username === game.player1 && (

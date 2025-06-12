@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.exc import IntegrityError
 from random import sample
 from typing import List
 
@@ -9,6 +10,8 @@ from app.constants import COUNTRIES, ROUND_COUNT, COUNTRY_SVG_MAP
 from app.schemas.game_schemas import StartGameRequest, GameResponse, GameSummary, SendGameRequest
 from app.schemas.game_detail_schemas import GameDetailResponse, GameRoundSchema, GuessSchema
 from app.schemas.guess_schemas import SubmitGuessRequest, SubmitGuessResponse, GuessResult
+from app.schemas.hint_schemas import HintResponse, HintRequest
+from app.utils.hints import generate_clue
 
 router = APIRouter()
 
@@ -34,6 +37,12 @@ def start_game(payload: StartGameRequest, db: Session = Depends(get_db)):
         countries=selected_countries,
     )
 
+    if payload.mode == "multi" and payload.player2:
+        try:
+            send_invite(contact=payload.player2, game_id=game.id)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to send invite: {e}")
+
     return GameResponse(
         gameId=game.id,
         mode=game.mode,
@@ -44,7 +53,7 @@ def start_game(payload: StartGameRequest, db: Session = Depends(get_db)):
     )
 
 @router.get("/game/{game_id}", response_model=GameDetailResponse)
-def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
+def get_game_by_id(game_id: str, player: str = Query(...), db: Session = Depends(get_db)):
     game = (
         db.query(models.Game)
         .options(
@@ -54,12 +63,10 @@ def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
         .first()
     )
 
-    # sort rounds explicitly in memory
-    game.rounds.sort(key=lambda r: r.round_index)
-
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
 
+    game.rounds.sort(key=lambda r: r.round_index)
     show_country = game.status == "complete"
 
     rounds = []
@@ -82,6 +89,14 @@ def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
     svg_filename = COUNTRY_SVG_MAP.get(current_country) if current_country else None
     svg_url = f"/static/svg/{svg_filename}" if svg_filename else None
 
+    db.refresh(game)
+    clues_available = game.clues_available.get(player, 0) if game.clues_available else 0
+    round_key = str(game.current_round)
+    clues_used_this_round = (
+    len(game.clues_used.get(round_key, {}).get(player, []))
+    if game.clues_used else 0
+)
+
     return GameDetailResponse(
         gameId=game.id,
         mode=game.mode,
@@ -93,14 +108,16 @@ def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
         country_svg=svg_url,
         rounds=rounds,
         maxGuesses=ROUND_COUNT,
+        cluesAvailable=clues_available,
+        cluesUsedThisRound=clues_used_this_round,
     )
 
 @router.post("/guess", response_model=SubmitGuessResponse)
 def submit_guess(payload: SubmitGuessRequest, db: Session = Depends(get_db)):
     game = (
-        db.query(crud.models.Game)
-        .options(joinedload(crud.models.Game.rounds).joinedload(crud.models.GameRound.guesses))
-        .filter(crud.models.Game.id == payload.gameId)
+        db.query(models.Game)
+        .options(joinedload(models.Game.rounds).joinedload(models.GameRound.guesses))
+        .filter(models.Game.id == payload.gameId)
         .first()
     )
     if not game:
@@ -121,15 +138,35 @@ def submit_guess(payload: SubmitGuessRequest, db: Session = Depends(get_db)):
     sorted_rounds = sorted(game.rounds, key=lambda r: r.round_index)
     current_round = sorted_rounds[game.current_round]
 
-    if any(g.player == payload.player for g in current_round.guesses):
-        raise HTTPException(status_code=400, detail="Player has already guessed this round")
-
     is_correct = payload.value.strip().lower() == current_round.country.lower()
 
-    crud.record_guess(db, current_round.id, payload.player, payload.value, is_correct)
+    try:
+        crud.record_guess(db, current_round.id, payload.player, payload.value, is_correct)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Player has already guessed this round")
 
-    db.refresh(game)
+    # Initialize clue tracking if necessary
+    game.clues_used = game.clues_used or {}
+    game.clues_available = game.clues_available or {
+        game.player1: 3,
+        **({game.player2: 3} if game.player2 else {})
+    }
 
+    # Reward clues based on usage in this round
+    if is_correct:
+        round_key = str(game.current_round)
+        clues_this_round = game.clues_used.get(round_key, {})
+        clues_used_by_player = clues_this_round.get(payload.player, 0)
+
+        if clues_used_by_player == 0:
+            game.clues_available[payload.player] += 2
+        elif clues_used_by_player == 1:
+            game.clues_available[payload.player] += 1
+        # else: no bonus
+
+    # Advance round if needed
     if game.mode == "single":
         game.current_round += 1
     elif game.mode == "multi":
@@ -145,7 +182,7 @@ def submit_guess(payload: SubmitGuessRequest, db: Session = Depends(get_db)):
         game.calculate_winner()
 
     db.commit()
-    db.refresh(game)
+    db.refresh(current_round)
 
     response_guesses = [
         GuessResult(player=g.player, value=g.value, correct=g.correct)
@@ -158,6 +195,7 @@ def submit_guess(payload: SubmitGuessRequest, db: Session = Depends(get_db)):
         status=game.status,
         guesses=response_guesses,
         winner=game.winner,
+        clues_available=game.clues_available.get(payload.player, 0)
     )
 
 @router.get("/games", response_model=List[GameSummary])
@@ -200,3 +238,45 @@ def send_game(payload: SendGameRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Game sent to player 2."}
+
+@router.post("/hint", response_model=HintResponse)
+def get_hint(request: HintRequest, db: Session = Depends(get_db)):
+    game = db.query(models.Game).filter(models.Game.id == request.gameId).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    player = request.player
+    if player not in [game.player1, game.player2]:
+        raise HTTPException(status_code=403, detail="You are not a participant in this game")
+
+    game.clues_available = game.clues_available or {
+        game.player1: 3,
+        **({game.player2: 3} if game.player2 else {})
+    }
+    game.clues_used = game.clues_used or {}
+
+    if game.clues_available[player] <= 0:
+        raise HTTPException(status_code=400, detail="No clues remaining for this player")
+
+    round_key = str(request.roundIndex)
+    game.clues_used.setdefault(round_key, {})
+    game.clues_used[round_key].setdefault(player, [])
+
+    previous_clues = game.clues_used[round_key][player]
+    game.clues_available[player] -= 1
+
+    # 🧠 Lookup the correct country from the DB
+    round = (
+        db.query(models.GameRound)
+        .filter_by(game_id=request.gameId, round_index=request.roundIndex)
+        .first()
+    )
+    if not round:
+        raise HTTPException(status_code=404, detail="Game round not found")
+
+    clue = generate_clue(round.country, previous_clues=previous_clues)
+    game.clues_used[round_key][player].append(clue)
+
+    db.commit()
+    db.refresh(game)
+    return HintResponse(clue=clue)

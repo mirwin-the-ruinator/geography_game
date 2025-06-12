@@ -27,7 +27,6 @@ export interface GameRound {
 
 export interface GameDetailResponse {
   gameId: string;
-  maxGuesses: number;
   mode: 'single' | 'multi';
   player1: string;
   player2?: string;
@@ -38,6 +37,8 @@ export interface GameDetailResponse {
   sent: boolean;
   rounds: GameRound[];
   current_round: number;
+  cluesAvailable?: number;
+  cluesUsedThisRound?: number;
 }
 
 export interface SubmitGuessRequest {
@@ -62,4 +63,14 @@ export interface GameSummary {
   player1: string;
   player2?: string;
   winner?: string | null;
+}
+
+export interface HintRequest {
+  gameId: string;
+  roundIndex: number;
+  player: string;
+}
+
+export interface HintResponse {
+  clue: string;
 }

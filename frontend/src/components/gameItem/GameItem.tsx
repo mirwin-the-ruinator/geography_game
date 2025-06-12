@@ -27,7 +27,7 @@ const GameItem = ({ game, expanded, onToggle }: Props) => (
           Players: {game.player1}
           {game.player2 && ` vs ${game.player2}`}
         </p>
-        <Link to={`/result/${game.gameId}`}>➡️ View Game Summary</Link>
+        <Link to={`/results/${game.gameId}`}>➡️ View Game Summary</Link>
       </div>
     )}
   </div>

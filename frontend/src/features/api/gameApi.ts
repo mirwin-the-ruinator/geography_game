@@ -6,6 +6,8 @@ import {
   SubmitGuessRequest,
   SubmitGuessResponse,
   GameSummary,
+  HintResponse,
+  HintRequest,
 } from '../../types/gameTypes';
 
 export const gameApi = api.injectEndpoints({
@@ -20,9 +22,20 @@ export const gameApi = api.injectEndpoints({
     getCountries: builder.query<string[], void>({
       query: () => '/countries',
     }),
-    getGame: builder.query<GameDetailResponse, string>({
-      query: (gameId) => `/game/${gameId}`,
+    getGame: builder.query<
+      GameDetailResponse,
+      { gameId: string; username: string }
+    >({
+      query: ({ gameId, username }) =>
+        `/game/${gameId}?player=${encodeURIComponent(username)}`,
       providesTags: ['Game'],
+    }),
+    getHint: builder.mutation<HintResponse, HintRequest>({
+      query: (body) => ({
+        url: '/hint',
+        method: 'POST',
+        body,
+      }),
     }),
     listUserGames: builder.query<GameSummary[], string>({
       query: (username) => `/games?player=${encodeURIComponent(username)}`,
@@ -52,6 +65,7 @@ export const {
   useStartGameMutation,
   useGetCountriesQuery,
   useGetGameQuery,
+  useGetHintMutation,
   useListUserGamesQuery,
   useSendGameMutation,
   useSubmitGuessMutation,

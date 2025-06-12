@@ -21,6 +21,11 @@ def get_user_by_credentials(db: Session, username: str, contact: str, notificati
 # --- Game CRUD ---
 
 def create_game(db: Session, mode: str, player1: str, player2: str | None, countries: list[str]) -> models.Game:
+
+    clues_available = {player1: 3}
+    if mode == "multi" and player2:
+        clues_available[player2] = 3
+
     game = models.Game(
         id=str(uuid4()),
         mode=mode,
@@ -29,6 +34,8 @@ def create_game(db: Session, mode: str, player1: str, player2: str | None, count
         current_round=0,
         sent=False,
         status="ongoing",
+        clues_available=clues_available,
+        clues_used={}
     )
     db.add(game)
     db.flush()

@@ -10,6 +10,8 @@ import {
 } from '../features/api/gameApi';
 import { useEffect, useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
+import Headline from '../components/headline/Headline';
+import Button from '../components/button/Button';
 
 const GamePage = () => {
   const { gameId } = useParams();
@@ -114,36 +116,53 @@ const GamePage = () => {
   };
 
   return (
-    <div>
-      <h1>Geography Game</h1>
+    <div className="flex flex-col items-center">
+      <Headline>🌍 Geography Game</Headline>
+
       {game.current_round < game.rounds.length && (
-        <p>
-          Round {game.current_round + 1} of {game.rounds.length}
-        </p>
+        <div className="my-4">
+          {' '}
+          <p>
+            Round {game.current_round + 1} of {game.rounds.length}
+          </p>
+        </div>
       )}
 
       {game.country_svg && (
-        <img
-          src={`http://localhost:8000${game.country_svg}`}
-          alt="Country outline"
-          style={{ width: '300px', marginBottom: '1rem' }}
-        />
+        <div className="my-2">
+          <img
+            src={`http://localhost:8000${game.country_svg}`}
+            alt="Country outline"
+            style={{ width: '300px', marginBottom: '1rem' }}
+          />
+        </div>
       )}
 
       {feedback && <p>{feedback}</p>}
 
       {(game.cluesAvailable ?? 0) > 0 && !alreadyGuessed && (
-        <button onClick={handleGetHint} disabled={isRequestingClue}>
-          Get a Hint - ({game.cluesAvailable ?? 0} clues left)
-        </button>
+        <div className="my-4">
+          <Button
+            variant="secondary"
+            onClick={handleGetHint}
+            disabled={isRequestingClue}
+          >
+            Get a Hint - ({game.cluesAvailable ?? 0} clues left)
+          </Button>
+        </div>
       )}
 
       {(game.cluesUsedThisRound ?? 0) > 0 && !alreadyGuessed && (
-        <div>
+        <div className="bg-orange-300 rounded px-3 py-2">
           <strong>Clues:</strong>
-          <ul>
+          <ul className="list-none">
             {clues.map((clue, index) => (
-              <li key={`clueItem${index}`}>{clue}</li>
+              <li
+                className="mb-2 pb-1 border-b-1 border-b-amber-800"
+                key={`clueItem${index}`}
+              >
+                {clue}
+              </li>
             ))}
           </ul>
         </div>
@@ -151,35 +170,54 @@ const GamePage = () => {
 
       {!alreadyGuessed && game.status !== 'complete' && (
         <div>
-          <label htmlFor="guess-select">Your guess:</label>
-          <select
-            id="guess-select"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            disabled={isSubmitting || loadingCountries}
-          >
-            <option value="">Select a country</option>
-            {countries.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
-          <button onClick={handleSubmit} disabled={isSubmitting || !guess}>
-            Submit Guess
-          </button>
+          <div className="my-4 rounded bg-amber-950 p-4 text-white">
+            <select
+              id="guess-select"
+              value={guess}
+              onChange={(e) => setGuess(e.target.value)}
+              disabled={isSubmitting || loadingCountries}
+            >
+              <option value="">Select a country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="my-4 flex justify-center">
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !guess}
+            >
+              Submit Guess
+            </Button>
+          </div>
         </div>
       )}
 
       {game.status === 'complete' && (
-        <button onClick={handleFinish}>View Results</button>
+        <div className="my-4">
+          <Button variant="primary" onClick={handleFinish}>
+            View Results
+          </Button>
+        </div>
       )}
 
       {game.status === 'complete' &&
         game.mode === 'multi' &&
         !game.sent &&
         username === game.player1 && (
-          <button onClick={handleSend}>Send to your opponent</button>
+          <div className="my-4">
+            <Button
+              variant="secondary"
+              onClick={handleSend}
+              disabled={isSubmitting}
+            >
+              Send to your opponent
+            </Button>
+          </div>
         )}
     </div>
   );

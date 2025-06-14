@@ -9,15 +9,17 @@ import UserSummaryPage from './routes/UserSummaryPage';
 
 const App = () => (
   <Router>
-    <Routes>
-      <Route path="/" element={<StartGame />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/play/:gameId" element={<GamePage />} />
-      <Route path="/results/:gameId" element={<ResultPage />} />
-      <Route path="/invite" element={<InviteFriend />} />
-      <Route path="/user-summary" element={<UserSummaryPage />} />
-    </Routes>
+    <div className="w-full max-w-lg m-auto">
+      <Routes>
+        <Route path="/" element={<StartGame />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/play/:gameId" element={<GamePage />} />
+        <Route path="/results/:gameId" element={<ResultPage />} />
+        <Route path="/invite" element={<InviteFriend />} />
+        <Route path="/user-summary" element={<UserSummaryPage />} />
+      </Routes>
+    </div>
   </Router>
 );
 

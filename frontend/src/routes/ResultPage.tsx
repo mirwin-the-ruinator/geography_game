@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../app/store';
 import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
+import Headline from '../components/headline/Headline';
+import Button from '../components/button/Button';
 
 const ResultPage = () => {
   const { gameId } = useParams();
@@ -53,17 +55,20 @@ const ResultPage = () => {
 
   return (
     <div>
-      <h1>Game Summary</h1>
-      <p>Mode: {game.mode}</p>
-      {game.mode === 'multi' && opponentReady && (
-        <>
-          <p>Winner: {game.winner ? `🏆 ${game.winner}` : 'It was a tie!'}</p>
-          <p>
-            Final Score: {username} {userScore} – {opponentScore} {opponent}
-          </p>
-        </>
-      )}
-
+      <Headline>Game Summary</Headline>
+      <div className="mt-4">
+        <p>
+          <strong>Mode</strong>: {game.mode}
+        </p>
+        {game.mode === 'multi' && opponentReady && (
+          <>
+            <p>Winner: {game.winner ? `🏆 ${game.winner}` : 'It was a tie!'}</p>
+            <p>
+              Final Score: {username} {userScore} – {opponentScore} {opponent}
+            </p>
+          </>
+        )}
+      </div>
       {[...game.rounds]
         .sort((a, b) => a.round_index - b.round_index)
         .map((round, index) => {
@@ -72,11 +77,8 @@ const ResultPage = () => {
           console.log('R O U N D', round);
 
           return (
-            <div
-              key={index}
-              style={{ borderBottom: '1px solid #ccc', marginBottom: '1rem' }}
-            >
-              <h3>Round {index + 1})</h3>
+            <div key={index} className="py-2 border-b-1 border-gray-400 mb-3">
+              <h3 className="font-semibold">Round {index + 1})</h3>
               <p>
                 Your guess: <strong>{userGuess?.value ?? '—'}</strong>{' '}
                 {userGuess?.correct ? '✅ Correct' : `❌ Incorrect`}
@@ -94,7 +96,7 @@ const ResultPage = () => {
           );
         })}
 
-      <button onClick={() => navigate('/')}>Play Again</button>
+      <Button onClick={() => navigate('/')}>Play Again</Button>
     </div>
   );
 };

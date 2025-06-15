@@ -6,6 +6,8 @@ import { useStartGameMutation } from '../features/api/gameApi';
 import { GameMode } from '../features/game/types';
 import Button from '../components/button/Button';
 import Headline from '../components/headline/Headline';
+import SinglePlayerIcon from '../components/IconSinglePlayer';
+import TwoPlayerIcon from '../components/IconTwoPlayer';
 
 const StartGame = () => {
   const navigate = useNavigate();
@@ -46,49 +48,58 @@ const StartGame = () => {
     <div className="flex flex-col items-center">
       <Headline>Welcome back, {user.username}!</Headline>
 
-      <div className="p-4">
-        <label>
-          <input
-            className="text-blue-500"
-            type="radio"
-            name="mode"
-            value="single"
-            checked={mode === 'single'}
-            onChange={() => setMode('single')}
-          />
-          Single Player
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="mode"
-            value="multi"
-            checked={mode === 'multi'}
-            onChange={() => setMode('multi')}
-          />
-          Two Player
-        </label>
+      <div className="p-4 flex items-center justify-center gap-4">
+        <div
+          className={`p-4 rounded text-center ${mode === 'single' ? 'bg-violet-400' : ''}`}
+        >
+          <button
+            type="button"
+            onClick={() => setMode('single')}
+            className="cursor-pointer"
+          >
+            <SinglePlayerIcon />
+            <span className="ml-2">Single Player</span>
+          </button>
+        </div>
+        <div
+          className={`p-4 text-center rounded ${mode === 'multi' ? 'bg-violet-400' : ''}`}
+        >
+          <button
+            type="button"
+            onClick={() => setMode('multi')}
+            className=" cursor-pointer"
+          >
+            <TwoPlayerIcon />
+            <span className="ml-2">Two Player</span>
+          </button>
+        </div>
       </div>
 
-      <div className="w-full flex justify-center">
-        <Button onClick={handleStart} disabled={isLoading}>
-          Start Game
-        </Button>
-
+      <div className="mt-4 w-full text-center">
         {mode === 'multi' && (
-          <div>
+          <div className="mb-4">
             <input
+              id="player2Contact"
+              className="border border-gray-300 rounded px-3 py-2 w-full max-w-72 focus:border-violet-400 focus:outline-0"
               type="text"
-              placeholder="Enter opponent's email or phone number"
+              placeholder="Opponent's email or phone number"
               value={player2Contact}
               onChange={(e) => setPlayer2Contact(e.target.value)}
             />
           </div>
         )}
+        <Button onClick={handleStart} disabled={isLoading}>
+          Start Game
+        </Button>
       </div>
       {user && (
-        <div style={{ marginTop: '1rem' }}>
-          <Link to="/user-summary">📊 View My Results</Link>
+        <div className="mt-8">
+          <Link
+            className="block px-8 py-4 rounded border-teal-300 border-1 hover:bg-sky-100"
+            to="/user-summary"
+          >
+            📊 View My Results
+          </Link>
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-function SinglePlayerIcon(props: React.SVGProps<SVGSVGElement>) {
+const SinglePlayerIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="100"
@@ -25,6 +25,6 @@ function SinglePlayerIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="M42 65c0-5 4-9 8-9s8 4 8 9v6H42v-6z" fill="black" />
     </svg>
   );
-}
+};
 
 export default SinglePlayerIcon;

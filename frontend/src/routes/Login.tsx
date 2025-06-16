@@ -5,6 +5,8 @@ import { NotificationType } from '../features/game/types';
 import { useLoginMutation } from '../features/api/authApi';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../features/identity/identitySlice';
+import Headline from '../components/headline/Headline';
+import Button from '../components/button/Button';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -33,26 +35,32 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h1>Log In</h1>
+    <div className="border p-4 rounded shadow-md max-w-md mt-8">
+      <Headline>Log In</Headline>
 
-      <CompoundInput
-        type="text"
-        label="Username"
-        value={username}
-        onChange={setUsername}
-      />
+      <div className="mt-4">
+        <CompoundInput
+          type="text"
+          label="Username"
+          value={username}
+          onChange={setUsername}
+        />
+      </div>
 
-      <CompoundInput
-        type={notification === 'sms' ? 'tel' : 'email'}
-        label={notification === 'sms' ? 'Phone Number' : 'Email'}
-        value={contact}
-        onChange={setContact}
-      />
+      <div className="mt-4">
+        <CompoundInput
+          type={notification === 'sms' ? 'tel' : 'email'}
+          label={notification === 'sms' ? 'Phone Number' : 'Email'}
+          value={contact}
+          onChange={setContact}
+        />
+      </div>
 
-      <button onClick={handleLogin} disabled={isLoading}>
-        Log In
-      </button>
+      <div className="mt-4">
+        <Button className="w-full" onClick={handleLogin} disabled={isLoading}>
+          Log In
+        </Button>
+      </div>
 
       {error && (
         <p style={{ color: 'red' }}>
@@ -70,9 +78,11 @@ const Login = () => {
         </p>
       )}
 
-      <button onClick={() => navigate('/signup')}>
-        Need an account? Sign up
-      </button>
+      <div className="mt-4 text-center">
+        <button className="cursor-pointer" onClick={() => navigate('/signup')}>
+          Need an account? Sign up
+        </button>
+      </div>
     </div>
   );
 };

@@ -6,6 +6,8 @@ import NotificationSelect from '../components/NotificationSelect';
 import { NotificationType } from '../features/game/types';
 import { setUser } from '../features/identity/identitySlice';
 import { useSignupMutation } from '../features/api/authApi';
+import Headline from '../components/headline/Headline';
+import Button from '../components/button/Button';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -32,26 +34,36 @@ const SignUp = () => {
   };
 
   return (
-    <div>
-      <h1>Create an Account</h1>
+    <div className="border p-4 rounded shadow-md max-w-md mt-8">
+      <Headline>Create an Account</Headline>
 
-      <CompoundInput
-        type="text"
-        label="Username"
-        value={username}
-        onChange={setUsername}
-      />
-      <NotificationSelect value={notification} onChange={setNotification} />
-      <CompoundInput
-        type={notification === 'sms' ? 'tel' : 'email'}
-        label={notification === 'sms' ? 'Phone Number' : 'Email'}
-        value={contact}
-        onChange={setContact}
-      />
+      <div className="mt-4">
+        <CompoundInput
+          type="text"
+          label="Username"
+          value={username}
+          onChange={setUsername}
+        />
+      </div>
 
-      <button onClick={handleSubmit} disabled={isLoading}>
-        Sign Up
-      </button>
+      <div className="mt-4">
+        <NotificationSelect value={notification} onChange={setNotification} />
+      </div>
+
+      <div className="mt-4">
+        <CompoundInput
+          type={notification === 'sms' ? 'tel' : 'email'}
+          label={notification === 'sms' ? 'Phone Number' : 'Email'}
+          value={contact}
+          onChange={setContact}
+        />
+      </div>
+
+      <div className="mt-4">
+        <Button className="w-full" onClick={handleSubmit} disabled={isLoading}>
+          Sign Up
+        </Button>
+      </div>
 
       {error && (
         <p style={{ color: 'red' }}>

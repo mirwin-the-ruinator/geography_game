@@ -8,7 +8,11 @@ type Props = {
 const NotificationSelect = ({ value, onChange }: Props) => (
   <div>
     <label>Notification Type:</label>
-    <select value={value} onChange={(e) => onChange(e.target.value as 'email' | 'sms')}>
+    <select
+      className="ml-3 border border-gray-300 rounded px-4 py-2 focus:border-violet-400 focus:outline-0"
+      value={value}
+      onChange={(e) => onChange(e.target.value as 'email' | 'sms')}
+    >
       <option value="email">Email</option>
       <option value="sms">SMS</option>
     </select>

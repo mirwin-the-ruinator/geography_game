@@ -35,17 +35,21 @@ const StartGame = () => {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center">
-        <h1>🌍 Geography Game</h1>
-        <p>
-          Please <a href="/login">log in</a> to start a game.
+      <div className="mt-4 flex flex-col items-center">
+        <Headline>🌍 Geography Game</Headline>
+        <p className="text-2xl text-center">
+          Please{' '}
+          <a className="underline" href="/login">
+            log in
+          </a>{' '}
+          to start a game.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="mt-4 flex flex-col items-center">
       <Headline>Welcome back, {user.username}!</Headline>
 
       <div className="p-4 flex items-center justify-center gap-4">

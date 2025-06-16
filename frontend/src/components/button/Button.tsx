@@ -13,14 +13,14 @@ const variantStyles = {
   danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
 } as const;
 
-function Button({
+const Button = ({
   children,
   onClick,
   type = 'button',
   variant = 'primary',
   disabled = false,
   className = '',
-}: ButtonProps) {
+}: ButtonProps) => {
   return (
     <button
       type={type}
@@ -36,6 +36,6 @@ function Button({
       {children}
     </button>
   );
-}
+};
 
 export default Button;

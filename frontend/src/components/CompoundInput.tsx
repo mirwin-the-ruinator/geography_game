@@ -10,7 +10,12 @@ type Props = {
 const CompoundInput = ({ type, label, value, onChange }: Props) => (
   <div>
     <label>{label}</label>
-    <input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+    <input
+      className="border border-gray-300 rounded px-3 py-2 w-full focus:border-violet-400 focus:outline-0"
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
   </div>
 );
 

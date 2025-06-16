@@ -2,7 +2,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useGetGameQuery } from '../features/api/gameApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../app/store';
-import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import Headline from '../components/headline/Headline';
 import Button from '../components/button/Button';
@@ -18,15 +17,6 @@ const ResultPage = () => {
     isLoading,
     error,
   } = useGetGameQuery(gameId && username ? { gameId, username } : skipToken);
-
-  useEffect(() => {
-    if (game) {
-      console.log('Game data:', game);
-      console.log('Game Status:', game.status);
-      console.log('Rounds:', game.rounds);
-    }
-  }, [game]);
-  // Debugging: Log game data to console
 
   if (!gameId || !username) return <p>Missing game or user.</p>;
   if (isLoading) return <p>Loading results...</p>;

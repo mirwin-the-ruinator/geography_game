@@ -1,6 +1,6 @@
 import React from 'react';
 
-function TwoPlayerIcon(props: React.SVGProps<SVGSVGElement>) {
+const TwoPlayerIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="100"
@@ -27,6 +27,6 @@ function TwoPlayerIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="M57 65c0-5 4-9 9-9s9 4 9 9v6H57v-6z" fill="black" />
     </svg>
   );
-}
+};
 
 export default TwoPlayerIcon;

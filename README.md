@@ -1,14 +1,15 @@
 # 🌍 Geography Game
 
-A geography guessing game built with **FastAPI** and **React + Vite** . Players guess country outlines, get feedback, and compete for high scores in single or multiplayer modes.
+A geography guessing game built with **FastAPI** and **React + Vite**. Players guess country outlines, unlock AI-generated hints, and compete for high scores in single or two-player modes.
 
 ---
 
 ## 🧰 Requirements
 
 - Python 3.11+
-- Node.js (v16+ recommended)
-- PostgreSQL (or SQLite if adapted)
+- Node.js 18+
+- Yarn v4 (configured with `nodeLinker: node-modules`)
+- PostgreSQL
 
 ---
 
@@ -18,13 +19,13 @@ A geography guessing game built with **FastAPI** and **React + Vite** . Players 
 
 ```bash
 cd backend
-python -m venv .venv
+python -m venv .venv # or cater to your own virtual environment paradigm
 source .venv/bin/activate
 
 pip install --upgrade pip
 pip install -r requirements.txt  # if present
 # OR install manually:
-pip install fastapi uvicorn sqlalchemy psycopg2-binary
+pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv
 
 # Initialize the database
 python -m app.db.init_db
@@ -44,20 +45,32 @@ Backend will be running at: [http://localhost:8000](http://localhost:8000)
 
 ```bash
 cd frontend
-npm install
-npm run dev
+
+# Install dependencies
+yarn install
+
+# Start the development server
+yarn dev
 ```
 
 Frontend will be running at: [http://localhost:5173](http://localhost:5173)
 
 ---
 
+## 🎨 Styling
+
+This project uses **Tailwind CSS** for styling. Utility classes power dynamic UIs and responsive design.
+
+---
+
 ## 🧪 Development Notes
 
-- **Game logic** is powered by FastAPI endpoints (`/start`, `/guess`, `/send`, etc.).
-- **Country outlines** are served as static SVGs from the backend (`/static/svg/...`).
-- Uses **Redux Toolkit Query** for client-side state and async API handling.
-- Authentication and game progress are tied to a username and notification method (email or SMS).
+- **Game flow**: `/start`, `/guess`, `/send`, and `/hints` (AI clues).
+- **Country outlines** are served as SVGs from the backend (`/static/svg/...`).
+- **State management** uses Redux Toolkit + RTK Query.
+- **Authentication** and **game tracking** are tied to a unique username and contact method.
+- **AI Clue System** gives intelligent hints powered by an LLM and a clue bank mechanic.
+- Uses `classNames`, React 19, and TypeScript.
 
 ---
 
@@ -66,14 +79,25 @@ Frontend will be running at: [http://localhost:5173](http://localhost:5173)
 ```bash
 # Frontend
 cd frontend
-npm run build
+yarn build
 
 # Backend
-# Serve via Gunicorn, Uvicorn, or a platform like Fly.io, Render, or Railway
+# Deploy with Uvicorn/Gunicorn or platforms like Fly.io, Render, or Railway
+```
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file in `backend/` for database and API config:
+
+```env
+DATABASE_URL=postgresql://username:password@localhost/dbname
+OPENAI_API_KEY=sk-...
 ```
 
 ---
 
 ## 🙌 License
 
-MIT. Feel free to build on or extend this project!
+MIT — use, remix, and contribute freely!

@@ -62,7 +62,7 @@ const StartGame = () => {
             className="cursor-pointer"
           >
             <SinglePlayerIcon />
-            <span className="ml-2">Single Player</span>
+            <span>Single Player</span>
           </button>
         </div>
         <div
@@ -74,7 +74,7 @@ const StartGame = () => {
             className=" cursor-pointer"
           >
             <TwoPlayerIcon />
-            <span className="ml-2">Two Player</span>
+            <span>Two Player</span>
           </button>
         </div>
       </div>

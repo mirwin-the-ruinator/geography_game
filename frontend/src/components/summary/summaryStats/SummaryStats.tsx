@@ -7,7 +7,7 @@ const SummaryStats = ({
   longestStreak,
 }: Props) => (
   <div>
-    <h2>Summary Stats</h2>
+    <h2 className="text-xl underline">Summary Stats</h2>
     <ul>
       <li>
         <strong>Games Completed:</strong> {completedGames}

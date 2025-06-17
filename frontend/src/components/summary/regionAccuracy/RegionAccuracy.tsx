@@ -2,7 +2,7 @@ import Props from './types';
 
 const RegionAccuracy = ({ regionAccuracy }: Props) => (
   <div>
-    <h2>Region Accuracy</h2>
+    <h2 className="text-xl underline">Region Accuracy</h2>
     <ul>
       {Object.entries(regionAccuracy).map(([region, rate]) => (
         <li key={region}>

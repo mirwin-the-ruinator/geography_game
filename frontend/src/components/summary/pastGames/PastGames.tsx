@@ -16,7 +16,7 @@ const PastGames = ({ games }: Props) => {
 
   return (
     <div>
-      <h2>Past Games</h2>
+      <h2 className="text-xl underline">Past Games</h2>
       {games.length === 0 ? (
         <p>No past games found.</p>
       ) : (

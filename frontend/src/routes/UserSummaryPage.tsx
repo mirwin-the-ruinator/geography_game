@@ -5,6 +5,7 @@ import { useListUserGamesQuery } from '../features/api/gameApi';
 import SummaryStats from '../components/summary/summaryStats/SummaryStats';
 import RegionAccuracy from '../components/summary/regionAccuracy/RegionAccuracy';
 import PastGames from '../components/summary/pastGames/PastGames';
+import Headline from '../components/headline/Headline';
 
 const UserSummaryPage = () => {
   const username = useSelector(
@@ -29,18 +30,24 @@ const UserSummaryPage = () => {
 
   return (
     <div>
-      <h1>{username}'s Summary</h1>
+      <Headline>{username}'s Summary</Headline>
 
-      <SummaryStats
-        completedGames={summary.completedGames}
-        accuracyRate={summary.accuracyRate}
-        winRate={summary.winRate}
-        longestStreak={summary.longestStreak}
-      />
+      <div className="mt-4 bg-pink-100 p-4 rounded shadow-md">
+        <SummaryStats
+          completedGames={summary.completedGames}
+          accuracyRate={summary.accuracyRate}
+          winRate={summary.winRate}
+          longestStreak={summary.longestStreak}
+        />
+      </div>
 
-      <RegionAccuracy regionAccuracy={summary.regionAccuracy} />
+      <div className="mt-4 bg-fuchsia-100 p-4 rounded shadow-md">
+        <RegionAccuracy regionAccuracy={summary.regionAccuracy} />
+      </div>
 
-      <PastGames games={games} />
+      <div className="mt-4 bg-indigo-100 p-4 rounded shadow-md">
+        <PastGames games={games} />
+      </div>
     </div>
   );
 };
